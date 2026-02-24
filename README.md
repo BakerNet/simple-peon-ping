@@ -46,6 +46,17 @@ bash uninstall.sh
 | WSL2 | `paplay`/`aplay` if configured, otherwise `powershell.exe` fallback |
 
 
+## Configuration
+
+Set `CLAUDE_PEON_VOLUME` in your shell environment to control volume (0.0–1.0, default `0.8`):
+
+```bash
+export CLAUDE_PEON_VOLUME=0.4   # quieter
+export CLAUDE_PEON_VOLUME=1.0   # louder
+```
+
+Volume is applied via `afplay -v` on macOS and `paplay --volume` on Linux. `aplay` and the WSL2 PowerShell fallback play at system volume.
+
 ## How it works
 
 `peon.sh` is registered as a Claude Code hook. On each event it reads JSON from stdin,

@@ -4,6 +4,7 @@ set -uo pipefail
 
 PEON_DIR="${CLAUDE_PEON_DIR:-$HOME/.claude/hooks/simple-peon-ping}"
 SOUNDS="$PEON_DIR/sounds"
+VOLUME="${CLAUDE_PEON_VOLUME:-0.8}"  # 0.0–1.0
 
 # Pick a random WAV from a category subdirectory
 pick_from() {
@@ -17,9 +18,9 @@ play() {
   local file="$1"
   [[ -f "$file" ]] || return
   if command -v afplay &>/dev/null; then
-    afplay -v 0.5 "$file" &
+    afplay -v "$VOLUME" "$file" &
   elif command -v paplay &>/dev/null; then
-    paplay "$file" &
+    paplay --volume="$(awk "BEGIN{printf \"%d\", $VOLUME * 65536}")" "$file" &
   elif command -v aplay &>/dev/null; then
     aplay -q "$file" &
   elif command -v powershell.exe &>/dev/null; then
