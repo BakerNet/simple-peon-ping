@@ -40,6 +40,7 @@ case "$EVENT" in
   SessionStart)        play "$(pick_from greeting)" ;;
   UserPromptSubmit)    play "$(pick_from acknowledge)" ;;
   PostToolUseFailure)  play "$(pick_from error)" ;;
+  PreCompact)          play "$(pick_from compact)" ;;
   Notification)
     case "$NTYPE" in
       permission_prompt) play "$(pick_from permission)" ;;

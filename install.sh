@@ -6,8 +6,11 @@ INSTALL_DIR="$HOME/.claude/hooks/simple-peon-ping"
 SETTINGS="$HOME/.claude/settings.json"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-SOURCE_URL="https://sounds.spriters-resource.com/media/assets/422/425494.zip"
-SOURCE_SUBFOLDER="Orc/Peon"
+PEON_URL="https://sounds.spriters-resource.com/media/assets/422/425494.zip"
+PEON_SUBFOLDER="Orc/Peon"
+
+GRUNT_URL="https://sounds.spriters-resource.com/media/assets/422/425499.zip"
+GRUNT_SUBFOLDER="Interface/Warning/Orc"
 
 echo "=== simple-peon-ping installer ==="
 echo ""
@@ -29,21 +32,31 @@ echo ""
 echo "Downloading sounds..."
 TMPDIR_DL=$(mktemp -d)
 TMPDIR_EX=$(mktemp -d)
-trap 'rm -rf "$TMPDIR_DL" "$TMPDIR_EX"' EXIT
+trap 'rm -rf "$TMPDIR_DL" "$TMPDIR_EX" "${TMPDIR_GRUNT:-}"' EXIT
 
-if ! curl -L --progress-bar -o "$TMPDIR_DL/sounds.zip" "$SOURCE_URL"; then
+if ! curl -L --progress-bar -o "$TMPDIR_DL/sounds.zip" "$PEON_URL"; then
   echo ""
   echo "Download failed. Manually download the ZIP from:"
-  echo "  $SOURCE_URL"
-  echo "Extract the '$SOURCE_SUBFOLDER' folder contents and re-run."
+  echo "  $PEON_URL"
+  echo "Extract the '$PEON_SUBFOLDER' folder contents and re-run."
   exit 1
 fi
 
-echo "Extracting..."
-unzip -q -j "$TMPDIR_DL/sounds.zip" "$SOURCE_SUBFOLDER/*.wav" -d "$TMPDIR_EX"
+echo "Extracting Peon sounds..."
+unzip -q -j "$TMPDIR_DL/sounds.zip" "$PEON_SUBFOLDER/*.wav" -d "$TMPDIR_EX"
+
+echo "Downloading Grunt sounds..."
+if ! curl -L --progress-bar -o "$TMPDIR_DL/grunt.zip" "$GRUNT_URL"; then
+  echo ""
+  echo "Grunt sound download failed (compact sounds will be missing)."
+else
+  echo "Extracting Grunt sounds..."
+  TMPDIR_GRUNT=$(mktemp -d)
+  unzip -q -j "$TMPDIR_DL/grunt.zip" "$GRUNT_SUBFOLDER/GruntGoldMineCollapsed1.wav" "$GRUNT_SUBFOLDER/GruntGoldMineLow1.wav" -d "$TMPDIR_GRUNT"
+fi
 
 echo "Organizing by category..."
-mkdir -p "$INSTALL_DIR/sounds/"{greeting,acknowledge,complete,permission,error}
+mkdir -p "$INSTALL_DIR/sounds/"{greeting,acknowledge,complete,permission,error,compact}
 
 cp "$TMPDIR_EX/PeonReady1.wav" "$TMPDIR_EX/PeonWhat1.wav" "$TMPDIR_EX/PeonWhat3.wav" \
    "$INSTALL_DIR/sounds/greeting/"
@@ -65,6 +78,11 @@ cp "$TMPDIR_EX/PeonWhat1.wav" "$TMPDIR_EX/PeonWhat2.wav" \
 cp "$TMPDIR_EX/PeonAngry4.wav" "$TMPDIR_EX/PeonDeath.wav" \
    "$INSTALL_DIR/sounds/error/"
 
+if [ -n "${TMPDIR_GRUNT:-}" ] && [ -d "${TMPDIR_GRUNT:-}" ]; then
+  cp "$TMPDIR_GRUNT/GruntGoldMineCollapsed1.wav" \
+     "$INSTALL_DIR/sounds/compact/"
+fi
+
 # Register hooks in settings.json
 echo ""
 echo "Registering hooks..."
@@ -78,10 +96,10 @@ jq --arg cmd "$HOOK_CMD" '
       | map(select(.hooks | map(.command // "" | test("peon\\.sh")) | any | not))
       | . + [{"matcher": "", "hooks": [{"type": "command", "command": $cmd, "timeout": 10}]}]
     );
-  upsert("SessionStart") | upsert("UserPromptSubmit") | upsert("PostToolUseFailure") | upsert("Notification")
+  upsert("SessionStart") | upsert("UserPromptSubmit") | upsert("PostToolUseFailure") | upsert("Notification") | upsert("PreCompact")
 ' "$SETTINGS" > "$SETTINGS.tmp" && mv "$SETTINGS.tmp" "$SETTINGS"
 
-echo "Hooks registered for: SessionStart, UserPromptSubmit, PostToolUseFailure, Notification"
+echo "Hooks registered for: SessionStart, UserPromptSubmit, PostToolUseFailure, Notification, PreCompact"
 echo ""
 echo "=== Installation complete! ==="
 echo "Zug zug."

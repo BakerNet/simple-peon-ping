@@ -4,7 +4,7 @@ Warcraft III Peon voice lines on Claude Code hooks. "Work work."
 
 ## What it does
 
-Plays Peon voice lines for Claude Code hook events:
+Plays Peon and Grunt voice lines for Claude Code hook events:
 
 | Event | Sound category | Example lines |
 |---|---|---|
@@ -13,6 +13,7 @@ Plays Peon voice lines for Claude Code hook events:
 | Claude finishes | complete | "Ready to work?", "Work, work." |
 | Permission needed | permission | "Hmm?", "What?" |
 | Tool call fails | error | (angry grunts, death sound) |
+| Context compacts | compact | "Your gold mine has collapsed!" |
 
 
 ## Install
@@ -28,7 +29,7 @@ Also see [Platform support](#platform-support)
 
 The installer:
 1. Copies `peon.sh` to `~/.claude/hooks/simple-peon-ping/`
-2. Downloads Peon WAV files (~29 MB) from The Sounds Resource
+2. Downloads Peon and Grunt WAV files from The Sounds Resource
 3. Registers hooks in `~/.claude/settings.json`
 
 ## Uninstall
